@@ -41,10 +41,16 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
     if output_dimension != None and scale_factor == None:
         x_dim = output_dimension[0]
         y_dim = output_dimension[1]
-        scale_factor = img[0]/float(x_dim)
+        print("flsafa")
+        print(x_dim)
+        print(y_dim)
+        print("hashdfoas")
+        scale_factor = img.shape[0]/float(x_dim)
     elif scale_factor != None and output_dimension == None:
         x_dim = math.ceil (img.shape[0] * scale_factor) - 1
         y_dim = math.ceil (img.shape[1] * scale_factor) - 1
+        x_dim = int(x_dim)
+        y_dim = int(y_dim)
     else:
         print("error in method 'rescale'")
         exit()
@@ -53,7 +59,9 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
     if interpolation == 'Nearest':
         for i in range (rescaled.shape[0]):
             for j in range (rescaled.shape[1]):
-                rescaled[i][j] = img[round(i/scale_factor)][round(j/scale_factor)]
+                x = int(round(i/scale_factor))
+                y = int(round(j/scale_factor))
+                rescaled[i][j] = img[x][y]
     elif interpolation == 'Bilinear':
         pass
     elif interpolation == 'Bicubic':
@@ -108,15 +116,24 @@ if args.output == None:
     print("Wish to continue?")
     while (True):
         res = input("(Y)es or (N)o: ")
-        if res == 'Y' or res == 'YES' or res == 'yes' or res == 'Yes' or res == 'y':
+        if (res == 'Y') or res == 'YES' or res == 'yes' or res == 'Yes' or res == 'y':
             break
         if res == 'N' or res == 'NO' or res == 'no' or res == 'No' or res == 'n':
             exit()
 
 img = cv2.imread(args.input, 0)
 print (img.shape)
-rescaled = rescale(img, 'Nearest', scale_factor=2)
-cv2.imwrite('out.png', rescaled) # saving works but showing dont, not know why yet 
-# cv2.imshow('image', rescaled)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+rescaled = rescale(img, 'Nearest', scale_factor=args.scale, output_dimension=args.dimensions)
+cv2.imwrite('out.png', rescaled) # saving works but showing dont, not know why yet
+
+cv2.imshow('image', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+rescaled = np.array(rescaled, dtype=np.uint8)
+
+cv2.imshow('image2', rescaled)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+print (rescaled.shape)
