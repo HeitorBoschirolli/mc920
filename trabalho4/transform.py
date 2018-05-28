@@ -18,27 +18,23 @@ def L (n, x, y, dx, dy, f):
 
     return ret
 
-def nearest (row, col, factor, input):
-    x = int(round(row/factor))
-    y = int(round(col/factor))
-    return input[x][y]
+def nearest (x_, y_, input):
+    return input[round(x_)][round(y_)]
 
-def bilinear (row, col, factor, input):
-    x = row/float(factor)
-    y = col/float(factor)
-    dx = x - math.floor(x)
-    dy = y - math.floor(y)
-    x = math.floor(x)
-    y = math.floor(y)
+def bilinear (x_, y_, input):
+    dx = x_ - math.floor(x_)
+    dy = y_ - math.floor(y_)
+    x = math.floor(x_)
+    y = math.floor(y_)
     ret = (1 - dx) * (1 - dy) * input[x][y] + dx * (1 - dy) * input[x + 1][y]
     ret += (1 - dx) * dy * input[x][y + 1] + dx * dy * input[x + 1][y + 1]
     return ret
 
-def bicubic (row, col, factor, input):
-    x = float(row) / factor
-    y = float(col) / factor
-    dx = x - math.floor(x)
-    dy = y - math.floor(y)
+def bicubic (x_, y_, input):
+    dx = x_ - math.floor(x_)
+    dy = y_ - math.floor(y_)
+    x = math.floor(x_)
+    y = math.floor(y_)
     x = math.floor(x)
     y = math.floor(y)
     acc = 0
@@ -47,13 +43,11 @@ def bicubic (row, col, factor, input):
             acc += input[x + m][y + n] * R(m - dx) * R(dy - n)
     return acc
 
-def lagrange (row, col, factor, input):
-    x = float(row) / factor
-    y = float(col) / factor
-    dx = x - math.floor(x)
-    dy = y - math.floor(y)
-    x = math.floor(x)
-    y = math.floor(y)
+def lagrange (x_, y_, input):
+    dx = x_ - math.floor(x_)
+    dy = y_ - math.floor(y_)
+    x = math.floor(x_)
+    y = math.floor(y_)
     L1 = L(1, x, y, dx, dy, input)
     L2 = L(2, x, y, dx, dy, input)
     L3 = L(3, x, y, dx, dy, input)
@@ -83,7 +77,9 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
     if interpolation == 'Nearest':
         for i in range (rescaled.shape[0] - 1):
             for j in range (rescaled.shape[1] - 1):
-                rescaled[i][j] = nearest(i, j, scale_factor, img)
+                x_ = float(i) / scale_factor
+                y_ = float(j) / scale_factor
+                rescaled[i][j] = nearest(x_, y_, img)
         
         for i in range (rescaled.shape[0]):
             rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 2]
@@ -92,16 +88,21 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
     elif interpolation == 'Bilinear':
         for i in range (rescaled.shape[0] - 3):
             for j in range (rescaled.shape[1] - 3):
-                rescaled[i][j] = bilinear(i, j, scale_factor, img)
+                x_ = float(i) / scale_factor
+                y_ = float(j) / scale_factor
+                rescaled[i][j] = bilinear(x_, y_, img)
     elif interpolation == 'Bicubic':
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
-                rescaled[i][j] = bicubic(i, j, scale_factor, img)
+                x_ = float(i) / scale_factor
+                y_ = float(j) / scale_factor
+                rescaled[i][j] = bicubic(x_, y_, img)
     elif interpolation == 'Lagrange':
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
-                rescaled[i][j] = lagrange(i, j, scale_factor, img)
-        
+                x_ = float(i) / scale_factor
+                y_ = float(j) / scale_factor
+                rescaled[i][j] = lagrange(x_, y_, img)
     else:
         print("error in method 'rescale_factor'")
         exit()
