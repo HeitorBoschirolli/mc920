@@ -4,6 +4,7 @@ import argparse
 import math
 
 
+
 def P (t):
     return max (t, 0)
 
@@ -19,18 +20,60 @@ def L (n, x, y, dx, dy, f):
     return ret
 
 def nearest (x_, y_, input):
-    return input[round(x_)][round(y_)]
+    """
+    calculete a pixel value using the nearest neighbor interpolation
+
+    Parameters
+    ------
+    x_ and y_: position in the original image
+    input: ndarray, input image
+
+    Return:
+    ------
+    ret: the interpolated value of the pixel
+    """
+    try:
+        return input[round(x_)][round(y_)]
+    except IndexError:
+        return 0
 
 def bilinear (x_, y_, input):
+    """
+    calculete a pixel value using the bilinear interpolation
+
+    Parameters
+    ------
+    x_ and y_: position in the original image
+    input: ndarray, input image
+
+    Return:
+    ------
+    ret: the interpolated value of the pixel
+    """
     dx = x_ - math.floor(x_)
     dy = y_ - math.floor(y_)
     x = math.floor(x_)
     y = math.floor(y_)
-    ret = (1 - dx) * (1 - dy) * input[x][y] + dx * (1 - dy) * input[x + 1][y]
-    ret += (1 - dx) * dy * input[x][y + 1] + dx * dy * input[x + 1][y + 1]
-    return ret
+    try:
+        ret = (1 - dx) * (1 - dy) * input[x][y] + dx * (1 - dy) * input[x + 1][y]
+        ret += (1 - dx) * dy * input[x][y + 1] + dx * dy * input[x + 1][y + 1]
+        return ret
+    except IndexError:
+        return 0
 
 def bicubic (x_, y_, input):
+    """
+    calculete a pixel value using the bicubic interpolation
+
+    Parameters
+    ------
+    x_ and y_: position in the original image
+    input: ndarray, input image
+
+    Return:
+    ------
+    ret: the interpolated value of the pixel
+    """
     dx = x_ - math.floor(x_)
     dy = y_ - math.floor(y_)
     x = math.floor(x_)
@@ -38,66 +81,103 @@ def bicubic (x_, y_, input):
     x = math.floor(x)
     y = math.floor(y)
     acc = 0
-    for m in range(-1, 3):
-        for n in range (-1, 3):
-            acc += input[x + m][y + n] * R(m - dx) * R(dy - n)
-    return acc
+    try:
+        for m in range(-1, 3):
+            for n in range (-1, 3):
+                acc += input[x + m][y + n] * R(m - dx) * R(dy - n)
+        return acc
+    except IndexError:
+        return 0
 
 def lagrange (x_, y_, input):
+    """
+    calculete a pixel value using the lagrange interpolation
+
+    Parameters
+    ------
+    x_ and y_: position in the original image
+    input: ndarray, input image
+
+    Return:
+    ------
+    ret: the interpolated value of the pixel
+    """
     dx = x_ - math.floor(x_)
     dy = y_ - math.floor(y_)
     x = math.floor(x_)
     y = math.floor(y_)
-    L1 = L(1, x, y, dx, dy, input)
-    L2 = L(2, x, y, dx, dy, input)
-    L3 = L(3, x, y, dx, dy, input)
-    L4 = L(4, x, y, dx, dy, input)
-    acc = - dy * (dy - 1) * (dy - 2) * L1/ 6.0
-    acc += (dy + 1) * (dy - 1) * (dy - 2) * L2/ 2.0
-    acc += -dy * (dy + 1) * (dy - 2) * L3/ 2.0
-    acc += dy * (dy + 1) * (dy - 1) * L4 / 6.0
+    try:
+        L1 = L(1, x, y, dx, dy, input)
+        L2 = L(2, x, y, dx, dy, input)
+        L3 = L(3, x, y, dx, dy, input)
+        L4 = L(4, x, y, dx, dy, input)
+        acc = - dy * (dy - 1) * (dy - 2) * L1/ 6.0
+        acc += (dy + 1) * (dy - 1) * (dy - 2) * L2/ 2.0
+        acc += -dy * (dy + 1) * (dy - 2) * L3/ 2.0
+        acc += dy * (dy + 1) * (dy - 1) * L4 / 6.0
     
-    return acc
+        return acc
+    except IndexError:
+        return 0
 
 def rescale (img, interpolation, output_dimension=None, scale_factor=None):
+    """
+    Resizes an image to a desired size
+
+    Parameters
+    ------
+    img: ndarray, input image
+    interpolation: the interpolation method to be used
+    output_dimension: the desired new dimensions of the image
+    scale_factor: factor with which the original image should be increased
+
+    Return:
+    ------
+    ret: the resized input image
+    """
+    
+    # if the scale factor is given, it calculates the output dimensions
     if output_dimension != None and scale_factor == None:
         x_dim = output_dimension[0]
         y_dim = output_dimension[1]
         scale_factor = float(x_dim)/img.shape[0]
+    # if output dimensions are given, calculates the scale factor
     elif scale_factor != None and output_dimension == None:
         x_dim = math.ceil (img.shape[0] * scale_factor)
         y_dim = math.ceil (img.shape[1] * scale_factor)
         x_dim = int(x_dim)
         y_dim = int(y_dim)
+    # if both or none are given, the function was improperly called
     else:
         print("error in method 'rescale'")
         exit()
     
     rescaled = np.empty((x_dim, y_dim))
     if interpolation == 'Nearest':
+        # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 1):
             for j in range (rescaled.shape[1] - 1):
                 x_ = float(i) / scale_factor
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = nearest(x_, y_, img)
         
-        for i in range (rescaled.shape[0]):
-            rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 2]
-        for i in range (rescaled.shape[1]):
-            rescaled[rescaled.shape[0] - 1][i] = rescaled[rescaled.shape[0] - 2][i]
     elif interpolation == 'Bilinear':
+        # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 3):
             for j in range (rescaled.shape[1] - 3):
                 x_ = float(i) / scale_factor
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = bilinear(x_, y_, img)
+        
     elif interpolation == 'Bicubic':
+        # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
                 x_ = float(i) / scale_factor
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = bicubic(x_, y_, img)
     elif interpolation == 'Lagrange':
+        # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
                 x_ = float(i) / scale_factor
@@ -108,6 +188,58 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         exit()
 
     return rescaled
+
+def rotate (img, interpolation, theta):
+    """
+    Rotates the image at a desired angle
+
+
+    Parameters
+    ------
+    img: ndarray, input image
+    interpolation: the interpolation method to be used
+    theta: the angle of rotation
+
+    Return:
+    ------
+    ret: the rotated input image
+    """
+    theta = theta * math.pi / 180
+    
+    rotated = np.zeros(img.shape)
+    if interpolation == 'Nearest':
+        for i in range (rotated.shape[0] - 1):
+            for j in range (rotated.shape[1] - 1):
+                x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
+                y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
+                if (x_ >= 0 and y_ >= 0):
+                    rotated[i][j] = nearest(x_, y_, img)
+    elif interpolation == 'Bilinear':
+        for i in range (rotated.shape[0] - 3):
+            for j in range (rotated.shape[1] - 3):
+                x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
+                y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
+                if (x_ >= 0 and y_ >= 0):
+                    rotated[i][j] = bilinear(x_, y_, img)
+    elif interpolation == 'Bicubic':
+        for i in range (1, rotated.shape[0] - 5):
+            for j in range (1, rotated.shape[1] - 5):
+                x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
+                y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
+                if (x_ >= 0 and y_ >= 0):
+                    rotated[i][j] = bicubic(x_, y_, img)
+    elif interpolation == 'Lagrange':
+        for i in range (1, rotated.shape[0] - 5):
+            for j in range (1, rotated.shape[1] - 5):
+                x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
+                y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
+                if (x_ >= 0 and y_ >= 0):
+                    rotated[i][j] = lagrange(x_, y_, img)
+    else:
+        print("error in method 'rescale_factor'")
+        exit()
+
+    return rotated
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -157,17 +289,18 @@ if args.output == None:
 
 img = cv2.imread(args.input, 0)
 print (img.shape)
-rescaled = rescale(img, args.interpolation, scale_factor=args.scale, output_dimension=args.dimensions)
-cv2.imwrite('out.png', rescaled)
+# rescaled = rescale(img, args.interpolation, scale_factor=args.scale, output_dimension=args.dimensions)
+rotated = rotate(img, args.interpolation, args.angle)
+cv2.imwrite('out.png', rotated)
 
 cv2.imshow('image', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-rescaled = np.array(rescaled, dtype=np.uint8)
+rotated = np.array(rotated, dtype=np.uint8)
 
-cv2.imshow('image2', rescaled)
+cv2.imshow('image2', rotated)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-print (rescaled.shape)
+print (rotated.shape)
