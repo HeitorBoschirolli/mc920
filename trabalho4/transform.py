@@ -152,7 +152,7 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         print("error in method 'rescale'")
         exit()
     
-    rescaled = np.empty((x_dim, y_dim))
+    rescaled = np.empty((x_dim, y_dim), dtype=np.uint8)
     if interpolation == 'Nearest':
         # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 1):
@@ -161,6 +161,11 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = nearest(x_, y_, img)
         
+        # duplicate pixels to the edge
+        for i in range (rescaled.shape[0]):
+            rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 2]
+        for i in range (rescaled.shape[1]):
+            rescaled[rescaled.shape[0] - 1][i] = rescaled[rescaled.shape[0] - 2][i]
     elif interpolation == 'Bilinear':
         # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 3):
@@ -169,6 +174,15 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = bilinear(x_, y_, img)
         
+        # duplicate pixels to the edge
+        for i in range (rescaled.shape[0]):
+            rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 4]
+            rescaled[i][rescaled.shape[1] - 2] = rescaled[i][rescaled.shape[1] - 4]
+            rescaled[i][rescaled.shape[1] - 3] = rescaled[i][rescaled.shape[1] - 4]
+        for i in range (rescaled.shape[1]):
+            rescaled[rescaled.shape[0] - 1][i] = rescaled[rescaled.shape[0] - 4][i]
+            rescaled[rescaled.shape[0] - 2][i] = rescaled[rescaled.shape[0] - 4][i]
+            rescaled[rescaled.shape[0] - 3][i] = rescaled[rescaled.shape[0] - 4][i]
     elif interpolation == 'Bicubic':
         # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
@@ -176,6 +190,21 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
                 x_ = float(i) / scale_factor
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = bicubic(x_, y_, img)
+        
+
+        # duplicate pixels to the edge
+        for i in range (rescaled.shape[0]):
+            rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 2] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 3] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 4] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 5] = rescaled[i][rescaled.shape[1] - 6]
+        for i in range (rescaled.shape[1]):
+            rescaled[rescaled.shape[0] - 1][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 2][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 3][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 4][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 5][i] = rescaled[rescaled.shape[0] - 6][i]
     elif interpolation == 'Lagrange':
         # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
@@ -183,6 +212,20 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
                 x_ = float(i) / scale_factor
                 y_ = float(j) / scale_factor
                 rescaled[i][j] = lagrange(x_, y_, img)
+
+        # duplicate pixels to the edge
+        for i in range (rescaled.shape[0]):
+            rescaled[i][rescaled.shape[1] - 1] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 2] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 3] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 4] = rescaled[i][rescaled.shape[1] - 6]
+            rescaled[i][rescaled.shape[1] - 5] = rescaled[i][rescaled.shape[1] - 6]
+        for i in range (rescaled.shape[1]):
+            rescaled[rescaled.shape[0] - 1][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 2][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 3][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 4][i] = rescaled[rescaled.shape[0] - 6][i]
+            rescaled[rescaled.shape[0] - 5][i] = rescaled[rescaled.shape[0] - 6][i]
     else:
         print("error in method 'rescale_factor'")
         exit()
@@ -205,8 +248,9 @@ def rotate (img, interpolation, theta):
     ret: the rotated input image
     """
     theta = theta * math.pi / 180
+    theta = - theta
     
-    rotated = np.zeros(img.shape)
+    rotated = np.empty(img.shape, dtype=np.uint8)
     if interpolation == 'Nearest':
         for i in range (rotated.shape[0] - 1):
             for j in range (rotated.shape[1] - 1):
@@ -241,66 +285,71 @@ def rotate (img, interpolation, theta):
 
     return rotated
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-a", "--angle", type=float, help="Angle (in degrees) at which the image will be rotated counterclockwise",
-    metavar='')
-parser.add_argument(
-    "-e", "--scale", type=float, help="Scale factor", metavar='')
-parser.add_argument(
-    "-d", "--dimensions", type=int, help="Output image dimensions", metavar='', nargs="+")
-parser.add_argument(
-    "-m", "--interpolation", type=str, help="What interpolation method should be used", metavar='',
-    choices=['Nearest', 'Bilinear', 'Bicubic', 'Lagrange'], default='Nearest')
-parser.add_argument(
-    "-i", "--input", help="Name of the input image", metavar='')
-parser.add_argument(
-    "-o", "--output", help="Name of the output image. "
-    "If not provided the output will be saved as out.png", metavar='')
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-a", "--angle", type=float, help="Angle (in degrees) at which the image will be rotated counterclockwise",
+        metavar='')
+    parser.add_argument(
+        "-e", "--scale", type=float, help="Scale factor", metavar='')
+    parser.add_argument(
+        "-d", "--dimensions", type=int, help="Output image dimensions", metavar='', nargs="+")
+    parser.add_argument(
+        "-m", "--interpolation", type=str, help="What interpolation method should be used", metavar='',
+        choices=['Nearest', 'Bilinear', 'Bicubic', 'Lagrange'], default='Nearest')
+    parser.add_argument(
+        "-i", "--input", help="Name of the input image", metavar='')
+    parser.add_argument(
+        "-o", "--output", help="Name of the output image. "
+        "If not provided the output will be saved as out.png", metavar='')
+    args = parser.parse_args()
 
-if args.input == None:
-    print("No input image especified")
-    exit()
-if args.angle == None and args.scale == None and args.dimensions == None:
-    print("The image must be rotated or scaled")
-    exit()
-if args.angle != None and (args.scale != None or args.dimensions != None):
-    print("Only one operation (rotate or rescale) can be done at a time")
-    exit()
-if args.scale != None and args.dimensions != None:
-    print("Define only scale or output dimension to rescale the image")
-    exit()
-if args.dimensions != None:
-    if len(args.dimensions) > 2: 
-        print("Output image must be bidimensional")
+    if args.input == None:
+        print("No input image especified")
         exit()
-if args.output == None:
-    message = "WARNING: no output image defined, the output will be saved as out.png "
-    message += "overwriting any file with this name in the process."
-    print (message)
-    print("Wish to continue?")
-    while (True):
-        res = input("(Y)es or (N)o: ")
-        if (res == 'Y') or res == 'YES' or res == 'yes' or res == 'Yes' or res == 'y':
-            break
-        if res == 'N' or res == 'NO' or res == 'no' or res == 'No' or res == 'n':
+    if args.angle == None and args.scale == None and args.dimensions == None:
+        print("The image must be rotated or scaled")
+        exit()
+    if args.angle != None and (args.scale != None or args.dimensions != None):
+        print("Only one operation (rotate or rescale) can be done at a time")
+        exit()
+    if args.scale != None and args.dimensions != None:
+        print("Define only scale or output dimension to rescale the image")
+        exit()
+    if args.dimensions != None:
+        if len(args.dimensions) > 2: 
+            print("Output image must be bidimensional")
             exit()
+    if args.interpolation == None:
+        print("An interpolation method must be defined")
+    if args.output == None:
+        message = "WARNING: no output image defined, the output will be saved as out.png "
+        message += "overwriting any file with this name in the process."
+        print (message)
+        print("Wish to continue?")
+        while (True):
+            res = input("(Y)es or (N)o: ")
+            if (res == 'Y') or res == 'YES' or res == 'yes' or res == 'Yes' or res == 'y':
+                break
+            if res == 'N' or res == 'NO' or res == 'no' or res == 'No' or res == 'n':
+                exit()
 
-img = cv2.imread(args.input, 0)
-print (img.shape)
-# rescaled = rescale(img, args.interpolation, scale_factor=args.scale, output_dimension=args.dimensions)
-rotated = rotate(img, args.interpolation, args.angle)
-cv2.imwrite('out.png', rotated)
+    img = cv2.imread(args.input, 0)
+    print (img.shape)
+    if args.angle == None and args.dimensions == None:
+        output = rescale(img, args.interpolation, scale_factor=args.scale)
+    elif args.angle == None:
+        output = rescale(img, args.interpolation, output_dimension=args.dimensions)
+    else:
+        output = rotate(img, args.interpolation, args.angle)
 
-cv2.imshow('image', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    if args.output == None:
+        cv2.imwrite('out.png', output)
+    else:
+        cv2.imwrite(args.output, output)
 
-rotated = np.array(rotated, dtype=np.uint8)
+    cv2.imshow('image', output)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-cv2.imshow('image2', rotated)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-print (rotated.shape)
+    print (output.shape)
