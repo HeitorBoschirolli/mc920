@@ -338,7 +338,6 @@ if __name__ == "__main__":
                 exit()
 
     img = cv2.imread(args.input, 0)
-    print (img.shape)
     if args.angle == None and args.dimensions == None:
         output = rescale(img, args.interpolation, scale_factor=args.scale)
     elif args.angle == None:
@@ -350,9 +349,3 @@ if __name__ == "__main__":
         cv2.imwrite('out.png', output)
     else:
         cv2.imwrite(args.output, output)
-
-    cv2.imshow('image', output)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    print (output.shape)
