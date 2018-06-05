@@ -255,29 +255,29 @@ def rotate (img, interpolation, theta):
     
     rotated = np.empty(img.shape, dtype=np.uint8)
     if interpolation == 'Nearest':
-        for i in range (rotated.shape[0] - 1):
-            for j in range (rotated.shape[1] - 1):
+        for i in range (rotated.shape[0]):
+            for j in range (rotated.shape[1]):
                 x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
                 y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
                 if (x_ >= 0 and y_ >= 0):
                     rotated[i][j] = nearest(x_, y_, img)
     elif interpolation == 'Bilinear':
-        for i in range (rotated.shape[0] - 3):
-            for j in range (rotated.shape[1] - 3):
+        for i in range (rotated.shape[0]):
+            for j in range (rotated.shape[1]):
                 x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
                 y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
                 if (x_ >= 0 and y_ >= 0):
                     rotated[i][j] = bilinear(x_, y_, img)
     elif interpolation == 'Bicubic':
-        for i in range (1, rotated.shape[0] - 5):
-            for j in range (1, rotated.shape[1] - 5):
+        for i in range (1, rotated.shape[0]):
+            for j in range (1, rotated.shape[1]):
                 x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
                 y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
                 if (x_ >= 0 and y_ >= 0):
                     rotated[i][j] = bicubic(x_, y_, img)
     elif interpolation == 'Lagrange':
-        for i in range (1, rotated.shape[0] - 5):
-            for j in range (1, rotated.shape[1] - 5):
+        for i in range (1, rotated.shape[0]):
+            for j in range (1, rotated.shape[1]):
                 x_ = img.shape[0] / 2 + (i - img.shape[0] / 2) * math.cos(theta) - (j - img.shape[1] / 2) * math.sin(theta)
                 y_ = img.shape[1] / 2 + (i - img.shape[0] / 2) * math.sin(theta) + (j - img.shape[1] / 2) * math.cos(theta)
                 if (x_ >= 0 and y_ >= 0):
