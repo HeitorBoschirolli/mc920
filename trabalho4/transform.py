@@ -140,13 +140,16 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
     if output_dimension != None and scale_factor == None:
         x_dim = output_dimension[0]
         y_dim = output_dimension[1]
-        scale_factor = float(x_dim)/img.shape[0]
+        scale_factor_x = float(x_dim)/img.shape[0]
+        scale_factor_y = float(y_dim)/img.shape[1]
     # if output dimensions are given, calculates the scale factor
     elif scale_factor != None and output_dimension == None:
         x_dim = math.ceil (img.shape[0] * scale_factor)
         y_dim = math.ceil (img.shape[1] * scale_factor)
         x_dim = int(x_dim)
         y_dim = int(y_dim)
+        scale_factor_x = scale_factor
+        scale_factor_y = scale_factor
     # if both or none are given, the function was improperly called
     else:
         print("error in method 'rescale'")
@@ -157,8 +160,8 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 1):
             for j in range (rescaled.shape[1] - 1):
-                x_ = float(i) / scale_factor
-                y_ = float(j) / scale_factor
+                x_ = float(i) / scale_factor_x
+                y_ = float(j) / scale_factor_y
                 rescaled[i][j] = nearest(x_, y_, img)
         
         # duplicate pixels to the edge
@@ -170,8 +173,8 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         # ignore the edges for the interpolation
         for i in range (rescaled.shape[0] - 3):
             for j in range (rescaled.shape[1] - 3):
-                x_ = float(i) / scale_factor
-                y_ = float(j) / scale_factor
+                x_ = float(i) / scale_factor_x
+                y_ = float(j) / scale_factor_y
                 rescaled[i][j] = bilinear(x_, y_, img)
         
         # duplicate pixels to the edge
@@ -187,8 +190,8 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
-                x_ = float(i) / scale_factor
-                y_ = float(j) / scale_factor
+                x_ = float(i) / scale_factor_x
+                y_ = float(j) / scale_factor_y
                 rescaled[i][j] = bicubic(x_, y_, img)
         
 
@@ -209,8 +212,8 @@ def rescale (img, interpolation, output_dimension=None, scale_factor=None):
         # ignore the edges for the interpolation
         for i in range (1, rescaled.shape[0] - 5):
             for j in range (1, rescaled.shape[1] - 5):
-                x_ = float(i) / scale_factor
-                y_ = float(j) / scale_factor
+                x_ = float(i) / scale_factor_x
+                y_ = float(j) / scale_factor_y
                 rescaled[i][j] = lagrange(x_, y_, img)
 
         # duplicate pixels to the edge
