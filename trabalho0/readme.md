@@ -12,10 +12,16 @@ After that, the program will ask for the name of the image on which it will perf
 
 ### Example
 hboschirolli:~/unicamp/current/mc920/trabalho0 $ python2 main.py
+
 Enter the image name: baboon.png
+
 image height: 512
+
 image width: 512
+
 minimum intensity: 0
+
 maximum intensity: 230
+
 average intensity: 129.147018433
 
